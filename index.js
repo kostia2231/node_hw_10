@@ -2,7 +2,7 @@ import express from "express";
 import "dotenv/config";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { authenticateJWT } from "./middleware/index.js";
+import { authenticateJWT } from "./middleware/authenticateJWT.js";
 
 const app = express();
 const db = [];
@@ -55,6 +55,18 @@ app.post("/login", async (req, res) => {
   res.status(200).json({ message: "log in was successful", token });
 });
 
+app.post("/delete-account", authenticateJWT, (req, res) => {
+  const userId = req.user.id;
+  const userIndex = db.findIndex((user) => user.id === userId);
+  if (userIndex === -1) {
+    return res.status(404).json({ message: "user not found" });
+  }
+
+  db.slice(userIndex, 1);
+
+  res.status(200).json({ message: "account was deleted" });
+});
+
 app.put("/update-email", authenticateJWT, async (req, res) => {
   const { email } = req.body;
 
@@ -72,6 +84,6 @@ app.put("/update-email", authenticateJWT, async (req, res) => {
   res.status(200).json({ message: "email was updated", user });
 });
 
-app.listen(prompt, () => {
+app.listen(port, () => {
   console.log(`server is running on http://localhost:${port}`);
 });
